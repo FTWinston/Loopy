@@ -4,15 +4,12 @@ export class AudioLoop {
     private readonly audioCtx: AudioContext;
     private source: MediaStreamAudioSourceNode | undefined;
     private readonly gain: GainNode;
-    private readonly delay: DelayNode;
-
-    constructor(delaySeconds: number) {
+    private delay: DelayNode | null;
+    
+    constructor(private delaySeconds: number) {
         this.audioCtx = new AudioContext();
-
         this.gain = this.audioCtx.createGain();
-        this.delay = this.audioCtx.createDelay(60);
-
-        this.delay.delayTime.setValueAtTime(delaySeconds, this.audioCtx.currentTime);
+        this.delay = null;
     }
 
     public setSource(sourceStream: MediaStream) {
@@ -29,26 +26,33 @@ export class AudioLoop {
     }
 
     public setDelay(delay: number) {
-        this.delay.delayTime.setValueAtTime(delay, this.audioCtx.currentTime);
+        this.delaySeconds = delay;
     }
 
     public start() {
+        if (this.delay !== null) {
+            return;
+        }
+        
+        // we (re)create the delay node every time to ensure it doesn't hold onto the previous loop
+        this.delay = this.audioCtx.createDelay(60);
+        this.delay.delayTime.setValueAtTime(this.delaySeconds, this.audioCtx.currentTime);
+
         this.gain.connect(this.delay);
         this.delay.connect(this.audioCtx.destination);
+        
+        this.audioCtx.resume();
     }
 
     public stop() {
-        // fade out, to avoid a "pop" from the sudden cutoff
-        const gain = this.gain;
-        gain.gain.setValueAtTime(gain.gain.value, this.audioCtx.currentTime); 
-        gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.05);
+        if (this.delay === null) {
+            return;
+        }
 
-        const delay = this.delay;
-        const audioCtx = this.audioCtx;
-        
-        setTimeout(() => {
-            gain.disconnect(delay);
-            delay.disconnect(audioCtx.destination);
-        }, 25);
+        this.gain.disconnect(this.delay);
+        this.delay.disconnect(this.audioCtx.destination);
+        this.delay = null;
+
+        this.audioCtx.suspend();
     }
 }
