@@ -3,3 +3,13 @@
     flex-direction: column;
     align-items: center;
 }
+
+.loop__button {
+    font-size: 2em;
+    padding: 0.5em;
+    border-radius: 0.25em;
+}
+
+.loop > * {
+    margin-top: 0.5em;
+}
