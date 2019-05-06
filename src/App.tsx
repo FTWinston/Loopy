@@ -110,10 +110,18 @@ class App extends React.Component<{}, IState> {
 
     private startLoop() {
         this.audioLoop.start();
+
+        this.setState({
+            looping: true,
+        })
     }
 
     private stopLoop() {
         this.audioLoop.stop();
+
+        this.setState({
+            looping: false,
+        })
     }
 
     private nextLoop() {
