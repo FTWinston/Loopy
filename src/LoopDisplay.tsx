@@ -47,8 +47,8 @@ export class LoopDisplay extends React.PureComponent<IProps, IState> {
             ? <button className="loop__button loop__stop" onClick={startStopAction}>stop</button>
             : <button className="loop__button loop__stop" onClick={startStopAction}>start</button>
 
-        const numBeatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setNumBeats(parseInt(e.target.value));
-        const beatLengthChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setBeatLength(parseInt(e.target.value));
+        const numBeatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setNumBeats(parseInt(e.target.value, 10));
+        const beatLengthChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setBeatLength(parseInt(e.target.value, 10));
 
         return (
             <div className={classes}>
