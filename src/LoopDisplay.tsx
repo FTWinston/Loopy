@@ -4,6 +4,9 @@ import './LoopDisplay.css';
 interface IProps {
     beatLengthMs: number;
     numBeats: number;
+    setNumBeats: (num: number) => void;
+    setBeatLength: (length: number) => void;
+    
     playing: boolean;
     start: () => void;
     stop: () => void;
@@ -44,9 +47,39 @@ export class LoopDisplay extends React.PureComponent<IProps, IState> {
             ? <button className="loop__button loop__stop" onClick={startStopAction}>stop</button>
             : <button className="loop__button loop__stop" onClick={startStopAction}>start</button>
 
+        const numBeatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setNumBeats(parseInt(e.target.value));
+        const beatLengthChanged = (e: React.ChangeEvent<HTMLInputElement>) => this.props.setBeatLength(parseInt(e.target.value));
+
         return (
             <div className={classes}>
                 {startStop}
+
+                <label>
+                    Number of beats: 
+                    <input
+                        type="number"
+                        value={this.props.numBeats}
+                        onChange={numBeatsChanged}
+                        disabled={this.props.playing}
+                        min={1}
+                        max={200}
+                        step={1}
+                    />
+                </label>
+                
+                <label>
+                    Length of each beat (milliseconds): 
+                    <input
+                        type="number"
+                        value={this.props.beatLengthMs}
+                        onChange={beatLengthChanged}
+                        disabled={this.props.playing}
+                        min={1}
+                        max={10000}
+                        step={1}
+                    />
+                </label>
+
                 <div className="loop__beatsRemaining">{this.state.beatsRemaining} beats remaining</div>
                 <div className="loop__loopNumber">Loop #{this.state.loopNumber}</div>
             </div>

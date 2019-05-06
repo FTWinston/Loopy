@@ -23,10 +23,10 @@ class App extends React.Component<{}, IState> {
             numBeats: 8,
         };
 
-        this.audioLoop = new AudioLoop(this.getLoopLength());
+        this.audioLoop = new AudioLoop(this.getLoopLength(this.state));
     }
 
-    public async componentDidMount() {
+    public componentDidMount() {
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
             .then(stream => {
                 this.audioLoop.setSource(stream);
@@ -40,17 +40,29 @@ class App extends React.Component<{}, IState> {
             });
     }
 
+    public componentWillUpdate(nextProps: {}, nextState: IState) {
+        if (nextState.beatLengthMs !== this.state.beatLengthMs || nextState.numBeats !== this.state.numBeats) {
+            this.audioLoop.setDelay(this.getLoopLength(nextState));
+        }
+    }
+
     public render() {
-        const loopDisplay = this.state.error
-            ? <p className="App-error">Couldn't locate microphone, unable to continue.</p>
-            : <LoopDisplay
-                playing={this.state.looping}
-                numBeats={this.state.numBeats}
-                beatLengthMs={this.state.beatLengthMs}
-                start={this.startLoop}
-                stop={this.stopLoop}
-                loop={this.nextLoop}
-            />
+        if (this.state.error) {
+            return (
+                <div className="App">
+                    <header className="App-header">
+                        <h1 className="App-title">Loopy sound recorder</h1>
+                        <p className="App-error">Couldn't locate microphone, unable to continue.</p>
+                    </header>
+                </div>
+            )
+        }
+
+        const startLoop = () => this.startLoop();
+        const stopLoop = () => this.stopLoop();
+        const nextLoop = () => this.nextLoop();
+        const setNumBeats = (num: number) => this.setNumBeats(num);
+        const setBeatLength = (length: number) => this.setBeatLength(length);
 
         return (
             <div className="App">
@@ -59,12 +71,42 @@ class App extends React.Component<{}, IState> {
                     <p className="App-intro">You probably <em>don't</em> want to use headphones.</p>
                 </header>
 
-                {loopDisplay}
+                <LoopDisplay
+                    numBeats={this.state.numBeats}
+                    beatLengthMs={this.state.beatLengthMs}
+                    setNumBeats={setNumBeats}
+                    setBeatLength={setBeatLength}
+
+                    playing={this.state.looping}
+                    start={startLoop}
+                    stop={stopLoop}
+                    loop={nextLoop}
+                />
             </div>
         );
     }
 
-    private getLoopLength() { return this.state.numBeats * this.state.beatLengthMs / 1000; }
+    private getLoopLength(state: IState) { return state.numBeats * state.beatLengthMs / 1000; }
+
+    private setNumBeats(num: number) {
+        if (this.state.looping) {
+            return;
+        }
+
+        this.setState({
+            numBeats: num,
+        });
+    }
+
+    private setBeatLength(length: number) {
+        if (this.state.looping) {
+            return;
+        }
+
+        this.setState({
+            beatLengthMs: length,
+        });
+    }
 
     private startLoop() {
         this.audioLoop.start();
